@@ -9,13 +9,12 @@
 
 	texto db 255 dup (24h), 24h
 	textoMod db 255 dup (24h), 24h
-	salto db 0dh, 0ah, 24h
+	salto db 0dh, 0ah, 24h							; SALTADOR
 .code
 	main proc
 
 	mov ax, @data
 	mov ds, ax
-	mov bx, 0
 	
 	mov ah, 9
 	mov dx, offset mensaje1
