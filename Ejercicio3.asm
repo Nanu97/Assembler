@@ -39,19 +39,19 @@
 		cmp textoMod[bx], 24h				; CONDICION DE SALIDA
 		je  finProceso
 		cmp bx, 0							; PRIMER LETRA
-		je  espacio
+		je  condicional
 		cmp textoMod[bx-1], ' '				; COMPARO POSICION ANTERIOR CON ESPACIO
-		je  espacio
+		je  condicional
 	aumenta:
 		inc bx								; INCREMENTO EL INDICE
 	jmp proceso
 
-	espacio:
-		cmp textoMod[bx], 61h				; COMPARO A PARTIR DE 61h ('a')
+	condicional:
+		cmp textoMod[bx], 'a'			    ; COMPARO A PARTIR DE 61h ('a')
 		jb  aumenta							; SI EL ASCII ES MENOR: YA ES MAYUSCULA
-		jae inicialMin						; SI EL ASCII ES MAYOR O IGUAL: ES MINUSCULA
+		cmp textoMod[bx], 'z'				; SI EL ASCII ES MAYOR O IGUAL: ES MINUSCULA
+		ja  aumenta
 
-	inicialMin:
 		mov al, textoMod[bx]
 		sub al, 20h					; RESTO 20h (DISTANCIA PARA PASAR DE MINUSCULA A MAYUSCULA)
 		mov textoMod[bx], al
