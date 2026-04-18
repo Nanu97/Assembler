@@ -45,7 +45,7 @@ aumenta:
 	jmp proceso
 
 esA:
-	add textoMod[bx], 23
+	add textoMod[bx], 17h
 	jmp aumenta
 
 finProceso:
