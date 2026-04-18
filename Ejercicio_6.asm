@@ -7,7 +7,7 @@
 	texto       db 255 dup (24h),24h
 	cartel1     db "***Ingrese un texto, luego contaremos cuantas vocales y consonantes tiene***",0dh,0ah,24h
 	cartel2     db "Cantidad de vocales:",0dh,0ah,24h
-	cartel3     db "Cantidad de consonantes",0dh,0ah,24h
+	cartel3     db "Cantidad de consonantes:",0dh,0ah,24h
 	saltarin    db 0dh,0ah,24h
 	vocales     db "aeiouAEIOU",24h
 	consonantes db "bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ",24h
