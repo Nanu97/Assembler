@@ -1,29 +1,23 @@
-; INGRESE UN TEXTO E IMPRIMA LA CANTIDAD DE PALABRAS
+; INGRESE UN TEXTO Y CUENTE LA CANTIDAD DE PALABRAS
 
 .8086
 .model small
 .stack 100h
 .data
-	texto         db 255 dup (24h),24h
-	cartel1       db "Ingrese un texto y contaremos la cantidad de palabras",0dh,0ah,24h
-	cartel2       db "Cantidad de palabras:",0dh,0ah,24h
-	saltarin      db 0dh,0ah,24h
-	contadorP     db 0
-	palabrasAscii db "000",0dh,0ah,24h
-	dataMul       db 100, 10, 1
-
+	texto       db 255 dup (24h), 24h
+	palabras    db 0
+	imprimirPal db "000",0dh, 0ah, 24h
+	letras      db "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 24h
+	dataMul     db 100,10,1
 .code
 	main proc
+
 	mov ax, @data
 	mov ds, ax
 
 	mov bx, 0
 
-	mov ah, 9
-	mov dx, offset cartel1
-	int 21h
-
-	; CAJA DE CARGA
+	;CAJA DE CARGA
 
 carga:
 	mov ah, 1
@@ -36,88 +30,83 @@ carga:
 
 finCarga:
 
-	mov bx, 0            ; REINICIALIZO INDICE BX
+	mov bx, 0
 
-	; PROCESO
 primerP:
-	cmp texto[bx], 'a'
-	jae primerP_min
-primerP_min:
-	cmp texto[bx], 'z'
-	jbe esPalabra
-
-primerP_may:
-	cmp texto[bx], 'A'
-	jae casiPrimerP_may
-casiPrimerP_may:
-	cmp texto[bx], 'Z'
-	jbe esPalabra
+	mov si, 0
+	cmp bx, 0
+	je puedeSerPal
 
 proceso:
+	mov si, 0
 	cmp texto[bx], 24h
 	je finProceso
-	mov al, texto[bx]
-	cmp al, 20h
-	je puedeSerPalabraMIN
-
-incrementa:
+	cmp texto[bx], 20h
+	je incrementa
 	inc bx
 	jmp proceso
 
-puedeSerPalabraMIN:
+incrementa:
 	inc bx
-	cmp texto[bx], 24h
-	je finProceso
-	cmp texto[bx], 'a'
-	jae casiPalabraMIN
+	jmp puedeSerPal
 
-casiPalabraMIN:
-	cmp texto[bx], 'z'
-	jbe esPalabra
+puedeSerPal:
+	cmp letras[si], 24h
+	je noEsLetra
+	mov al, texto[bx]
+	cmp al, letras[si]
+	je esLetra
+	inc si
+	jmp puedeSerPal
 
-puedeSerPalabraMAY:
-	cmp texto[bx], 'A'
-	jae casiPalabraMAY
+esLetra:
+	inc palabras
+	inc bx
+	jmp proceso
 
-casiPalabraMAY:
-	cmp texto[bx], 'Z'
-	jbe esPalabra
-
-esPalabra:
-	inc contadorP
-	jmp incrementa
+noEsLetra:
+	inc bx
+	jmp proceso
 
 finProceso:
 
-	; R2A MAQUINA DE MATAR
+	;REG2ASCII MAQUINA DE MATAR
 
 	mov cx, 3
 
-	mov al, contadorP
+	mov al, palabras
+
 	xor ah, ah
 	xor bx, bx
 
 r2a:
 	mov dl, dataMul[bx]
 	div dl
-	add palabrasAscii[bx], al
+	add imprimirPal[bx], al
 	mov al, ah
 	xor ah, ah
 	inc bx
-loop r2a
+	loop r2a
 
-	; IMPRIMO RESULTADOS
+	;IMPRIMO RESULTADOS
 
-	mov ah, 9
-	mov dx, offset saltarin
+	mov cx, 60
+	
+separador:
+	mov ah, 2
+	mov dl, '-'
+	int 21h
+	loop separador
+
+	mov ah, 2
+	mov dl, 0dh
+	int 21h
+	mov ah, 2
+	mov dl, 0ah
 	int 21h
 
 	mov ah, 9
-	mov dx, offset cartel2
-	int 21h
-
-	mov ah, 9
-	mov dx, offset palabrasAscii
+	mov dx, offset imprimirPal
 	int 21h
 
 	mov ax, 4c00h
