@@ -1,78 +1,93 @@
-; INGRESE UN TEXTO E IMPRIMALO CON LA PRIMER LETRA DE CADA PALABRA EN MAYUSCULA
+; INGRESE UN TEXTO DE HASTA 255 CARACTERES Y MAYUSCULICE CADA INICIAL DE UNA PALABRA
 
 .8086
 .model small
 .stack 100h
 .data
-	mensaje1 db "Ingrese el texto:", 0dh, 0ah, 24h
-	mensaje2 db "*****TEXTO ORIGINAL*****", 0dh, 0ah, 24h
-	mensaje3 db "*****TEXTO MODIFICADO*****", 0dh, 0ah, 24h
-	saltarin db 0dh, 0ah, 24h			            ; SALTARIN (VARIABLE AUXILIAR)
-	texto    db 255 dup (24h), 24h					; TEXTO ORIGINAL
-	textoMod db 255 dup (24h), 24h					; TEXTO MODIFICADO
+	texto  db 255 dup (24h), 24h
+	minusc db "abcdefghijklmnopqrstuvwxyz", 24h
 .code
 	main proc
+
 	mov ax, @data
 	mov ds, ax
 
-	mov ah, 9						        ; SERVICIO DE IMPRESION
-	mov dx, offset mensaje1			        ; IMPRIMO mensaje1
-	int 21h									; EJECUTO
+	mov bx, 0
 
 	;CAJA DE CARGA
-	mov bx, 0 								; PONGO EL INDICE EN 0
 
-	carga:
-		mov ah, 1 							; SERVICIO DE ENTRADA POR TECLADO
-		int 21h								; EJECUTO INT 21h
-		cmp al, 0dh 						; COMPARO CON ENTER PARA FINALIZAR CARGA
-		je finCarga
-		mov texto[bx], al
-		mov textoMod[bx], al
-		inc bx
+carga:
+	mov ah, 1
+	int 21h
+	cmp al, 0dh
+	je finCarga
+	mov texto[bx], al
+	inc bx
 	jmp carga
 
-	finCarga:
-		mov bx, 0 			 				; REINICIALIZO BX PARA VOLVER A RECORRER
+finCarga:
+	
+	mov bx, 0
+	;PROCESO
 
-	proceso:
-		cmp textoMod[bx], 24h				; CONDICION DE SALIDA
-		je  finProceso
-		cmp bx, 0							; PRIMER LETRA
-		je  condicional
-		cmp textoMod[bx-1], ' '				; COMPARO POSICION ANTERIOR CON ESPACIO
-		je  condicional
-	aumenta:
-		inc bx								; INCREMENTO EL INDICE
+primerP:
+	mov si, 0
+	cmp bx, 0
+	je puedeSerPrimerP
+
+puedeSerPrimerP:
+	cmp texto[bx], 24h
+	je finProceso
+	cmp minusc[si], 24h
+	je noMayusculizo
+	mov al, texto[bx]
+	cmp al, minusc[si]
+	je procesoMay
+	inc si
+	jmp puedeSerPrimerP
+
+proceso:
+	mov si, 0
+	cmp texto[bx], 24h
+	je finProceso
+	cmp texto[bx], 20h
+	je incrementa
+	inc bx
 	jmp proceso
 
-	condicional:
-		cmp textoMod[bx], 'a'			    ; COMPARO A PARTIR DE 61h ('a')
-		jb  aumenta							; SI EL ASCII ES MENOR: YA ES MAYUSCULA
-		cmp textoMod[bx], 'z'				; SI EL ASCII ES MAYOR O IGUAL: ES MINUSCULA
-		ja  aumenta
+incrementa:
+	inc bx
 
-		mov al, textoMod[bx]
-		sub al, 20h					; RESTO 20h (DISTANCIA PARA PASAR DE MINUSCULA A MAYUSCULA)
-		mov textoMod[bx], al
-		jmp aumenta
+puedeSerPal:
+	cmp texto[bx], 20h
+	je incrementa
+	cmp minusc[si], 24h
+	je noMayusculizo
+	mov al, texto[bx]
+	cmp al, minusc[si]
+	je procesoMay
+	inc si
+	jmp puedeSerPal
 
-	finProceso:
+procesoMay:
+	sub al, 20h
+	mov texto[bx], al
+	inc bx
+	jmp proceso
 
-	mov ah, 9
-	mov dx, offset mensaje3
+noMayusculizo:
+	inc bx
+	jmp proceso
+
+finProceso:
+
+	;IMPRIMO RESULTADOS
+
+	mov ah, 2
+	mov dl, 0dh
 	int 21h
-
-	mov ah, 9
-	mov dx, offset textoMod
-	int 21h
-
-	mov ah, 9
-	mov dx, offset saltarin
-	int 21h
-
-	mov ah, 9
-	mov dx, offset mensaje2
+	mov ah, 2
+	mov dl, 0ah
 	int 21h
 
 	mov ah, 9
@@ -81,5 +96,6 @@
 
 	mov ax, 4c00h
 	int 21h
+
 	main endp
 end
