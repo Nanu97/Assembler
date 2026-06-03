@@ -17,6 +17,7 @@
 	public mayusculizar
 	public funcionSumar
 	public quitarEspacios
+	public saltarin
 
 ;---------------------------------------------------------------------------
 ;						1) REEMPLAZAR CARACTERES
@@ -428,5 +429,26 @@ finProcesoQuitaespacios:
 	pop bp
 	ret 4
 	quitarEspacios endp
+
+;--------------------------------
+;		11) SALTO DE LINEA
+;--------------------------------
+
+	saltarin proc
+
+	push ax
+	push dx
+
+	mov ah, 2
+	mov dl, 0dh
+	int 21h
+	mov dl, 0ah
+	int 21h
+
+	pop dx
+	pop ax
+	ret
+
+	saltarin endp
 
 end
