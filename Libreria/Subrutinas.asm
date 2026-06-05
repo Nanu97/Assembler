@@ -1,4 +1,4 @@
-;ARRAY DE SIMBOLOS POR LAS DUDAS: "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
+;ARRAY DE SIMBOLOS POR LAS DUDAS: "!#%&'()*+,-./:;<=>?@[\]^_`{|}~$"
 
 .8086
 .model small
