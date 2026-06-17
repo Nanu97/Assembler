@@ -19,6 +19,7 @@
 	public saltarin
 	public cuentaCaracteres
 	public reemplazaTodo
+	public reemplazaYCuentaCambios
 
 ;---------------------------------------------------------------------------
 ;						1) REEMPLAZAR CARACTERES
@@ -517,5 +518,55 @@ finProcesoCambio:
 	pop bp
 	ret 2
 	reemplazaTodo endp
+
+;-------------------------------------------------------
+;			14) REEMPLAZO Y CUENTO CAMBIOS
+;-------------------------------------------------------
+
+	reemplazaYCuentaCambios proc
+	;ESTA FUNCION RECIBE POR STACK UN TEXTO terminado en 24h SS:[BP+6]
+	;EL OFFSET DE UNA VARIABLE CON UN CARACTER EN SS:[BP+4]
+
+	push bp
+	mov bp, sp
+	push bx
+	push si
+	push ax
+	push di
+
+	mov di, SS:[BP+8] ;Rescato contador de cambios
+	mov bx, SS:[BP+6] ;RESCATO TEXTO
+	mov si, SS:[BP+4] ;RESCATO CARACTER A REEMPLAZAR
+
+procesoReemplazado:
+	cmp byte ptr [bx], 24h
+	je finReemplazado
+	mov al, [si]
+	cmp [bx], al
+	je cambiarCaracter
+
+	mov al, [si+1]
+	cmp [bx], al
+	je cambiarCaracter
+
+	inc bx
+jmp procesoReemplazado
+
+cambiarCaracter:
+	mov byte ptr [bx], '&' ; PUEDE VARIAR DEPENDIENDO DEL CARACTER QUE EL USUARIO DECIDA
+	inc byte ptr[di]	   ; aumenta el contenido del acumulador de cambios
+	inc bx
+	jmp procesoReemplazado
+
+finReemplazado:
+	
+	pop di
+	pop ax
+	pop si
+	pop bx
+	pop bp
+	ret 6
+
+	reemplazaYCuentaCambios endp
 
 end
