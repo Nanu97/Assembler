@@ -15,9 +15,10 @@
 	public contarCosas ;VOCALES, NUMEROS, SIMBOLOS, LETRAS, ETC...
 	public r2a ;REGTOASCII (PICO Y PALA)
 	public mayusculizar
-	public funcionSumar
 	public quitarEspacios
 	public saltarin
+	public cuentaCaracteres
+	public reemplazaTodo
 
 ;---------------------------------------------------------------------------
 ;						1) REEMPLAZAR CARACTERES
@@ -237,7 +238,7 @@ finProcesoAlverre:
 	push ax
 
 	mov bx, SS:[BP+8] ;RESCATO TEXTO
-	mov si, SS:[BP+6] ;RESCATO ARRAY DE SIMBOLOS (CONTENIDO MODIFICABLE EN MAIN)
+	mov si, SS:[BP+6] ;RESCATO ARRAY DE SIMBOLOS termina en 003 (CONTENIDO MODIFICABLE EN MAIN)
 	mov di, SS:[BP+4] ;RESCATO CANTIDAD
 
 	mov dx, si ;DX GUARDA UNA COPIA DEL INICIO DEL ARRAY DE SIMBOLOS
@@ -358,38 +359,8 @@ finMayusculizo:
 	ret 4
 	mayusculizar endp
 
-;--------------------------------------------------------------------------------------
-;				9) SUMAR DOS NUMEROS (EL RESULTADO NO PUEDE SUPERAR 255)
-;--------------------------------------------------------------------------------------
-
-	funcionSumar proc
-	;ESTA FUNCION RECIBE EL OFFSET DE UNA VARIABLE CON EL NUMERO 'A' EN SS:[BP+6]
-	;Y EL OFFSET DEL NUMERO 'B' EN SS:[BP+4]
-	;LAS VARIABLES CON LOS NUMEROS EN MAIN DEBEN SER DEL TIPO "DW"
-
-	xor ax, ax
-	push bp
-	mov bp, sp
-	push bx
-	push si
-
-	mov bx, SS:[BP+6] ;RESCATO OFFSET PRIMER NUMERO
-	mov si, SS:[BP+4] ;RESCATO OFFSET SEGUNDO NUMERO
-
-	mov ax, [bx] ;RESCATO EL CONTENIDO DEL PRIMER NUMERO
-	mov bx, [si] ;RESCATO EL CONTENIDO DEL SEGUNDO NUMERO
-
-	add ax, bx
-	;EL RESULTADO VUELVE EN AX, ASI QUE NO POPEAMOS EL REGISTRO
-
-	pop si
-	pop bx
-	pop bp
-	ret 4
-	funcionSumar endp
-
 ;-------------------------------------------------------------------------------------------
-;							10) BORRAR ESPACIOS DE UN TEXTO
+;							9) BORRAR ESPACIOS DE UN TEXTO
 ;-------------------------------------------------------------------------------------------
 
 	quitarEspacios proc
@@ -431,7 +402,7 @@ finProcesoQuitaespacios:
 	quitarEspacios endp
 
 ;--------------------------------
-;		11) SALTO DE LINEA
+;		10) SALTO DE LINEA
 ;--------------------------------
 
 	saltarin proc
@@ -450,5 +421,101 @@ finProcesoQuitaespacios:
 	ret
 
 	saltarin endp
+
+;-------------------------------------------------------------------------
+;	11) CUENTA CANTIDAD DE VECES QUE SE REPITEN CARACTERES DE UN ARRAY
+;-------------------------------------------------------------------------
+
+	cuentaCaracteres proc
+	;ESTA FUNCION RECIBE POR STACK UN TEXTO terminado en 24h EN SS:[BP+8]
+	;UNA VARIABLE CON [cosas] EN SS:[BP+6]
+	;UNA VARIABLE TIPO DB EN SS[BP+4] para guardar
+	;la cantidad de veces que se repiten los caracteres de
+	;la variable de [cosas] en el texto
+	push bp
+	mov bp, sp
+	;PUSHEO TODO LO DEMAS
+	push bx
+	push si
+	push di
+	push dx
+
+	mov bx, SS:[BP+8] ;RESCATO TEXTO
+	mov si, SS:[BP+6] ;RESCATO ARRAY CON COSAS
+	mov di, SS:[BP+4] ;RESCATO CANTIDAD
+
+procesitoCuenta:
+	cmp byte ptr[bx], 24h
+	je finProcesoCuenta
+	mov dl, byte ptr[bx]
+	call compara
+
+	cmp al, 1
+	jne continua2
+	inc byte ptr[di]
+
+continua2:
+	inc bx
+	jmp procesitoCuenta
+
+finProcesoCuenta:
+
+	pop dx
+	pop di
+	pop si
+	pop bx
+	pop bp
+	ret 6
+	cuentaCaracteres endp
+
+;-------------------------------------
+;		12) PROCESO DE COMPARAR
+;-------------------------------------
+
+	compara proc
+		;RECIBE EN DL UN CARACTER y lo COMPARA CON UNA VARIABLE QUE
+		;VIENE CON EL OFFSET EN [SI], finalizado con 003 (END OF TEXT).
+		;DEVUELVE EN AL, 1 SI ESE CARACTER SE ENCUENTRA EN LA LISTA QUE VIENE EN [SI]
+	push si
+	xor al, al
+procesoCompara:
+	cmp byte ptr[si], 3
+	je finSinCompara
+	cmp dl, byte ptr[si]
+	je finCompara
+	inc si
+	jmp procesoCompara
+
+finCompara:
+	mov al, 1
+finSinCompara:
+	pop si
+	ret
+	compara endp
+
+;--------------------------------------------------------------
+;		13) REEMPLAZA TEXTO COMPLETO POR [usuario elige]
+;--------------------------------------------------------------
+
+	reemplazaTodo proc
+
+	push bp
+	mov bp, sp
+	push bx
+
+	mov bx, SS:[BP+4] ;rescato texto
+
+procesoCambio:
+	cmp byte ptr[bx], 24h
+	je finProcesoCambio
+	mov byte ptr[bx], '*'
+	inc bx
+jmp procesoCambio
+
+finProcesoCambio:
+	pop bx
+	pop bp
+	ret 2
+	reemplazaTodo endp
 
 end
