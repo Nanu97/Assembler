@@ -1,3 +1,7 @@
+;------------------------------------------------------------------------
+;                     INSTALADOR DE LA INTERRUPCION
+;------------------------------------------------------------------------
+
 .8086
 .model tiny
 .code
@@ -16,7 +20,6 @@ ganador PROC FAR
     mov ax, cs      
     mov ds, ax
 
-    ; Imprime únicamente el cartel estático
     mov ah, 09h
     mov dx, offset CartelGanador
     int 21h
@@ -42,7 +45,7 @@ FinResidente LABEL BYTE
 ;------------------------------------------------------------------------
 ; Datos de instalación
 ;------------------------------------------------------------------------
-Cartel        DB "Programa Instalado exitosamente!!!", 0dh, 0ah, '$'
+Cartel        DB "Programa Instalado exitosamente!!!",0dh,0ah,24h
 
 main:                    
     mov ax, CS
