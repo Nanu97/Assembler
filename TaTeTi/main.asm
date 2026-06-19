@@ -1,9 +1,13 @@
+;----------------------------------------------------------------------------
+;                       CODIGO FUENTE DEL TA-TE-TI
+;----------------------------------------------------------------------------
+
 .8086
 .model small
 .stack 100h
 .data
 
-    ;FILA Y COLUMNA DONDE ESTÁ PARADO EL CURSOR
+    ;FILA Y COLUMNA DONDE ESTA PARADO EL CURSOR
     filTablero   db 0
     colTablero   db 0
     scanCode     db 0
@@ -11,15 +15,13 @@
     ;VARIABLES PARA MANEJAR QUIÉN ESTÁ JUGANDO
     turno        db 0
     fichaActual  db 'X'
-    cierreCartel db " |", 0dh, 0ah
-                 db "  ==============", 0dh, 0ah, 24h
 
     ;VARIABLES PARA DIBUJAR EL TABLERO
     fila1        db '[ ] [ ] [ ]', 24h
     fila2        db '[ ] [ ] [ ]', 24h
     fila3        db '[ ] [ ] [ ]', 24h
 
-    ;Variables para vectores de victoria
+    ;VARIABLES PARA VECTORES DE VICTORIA
     fil1         db "000$"
     fil2         db "000$"
     fil3         db "000$"
@@ -28,22 +30,21 @@
     col3         db "000$"
     diag_asc     db "000$"  ;diagonal ascendente
     diag_des     db "000$"  ;diagonal descendiente
-
     casillero    db 0      
     marca        db 1          
     ganador      db "0"
-    reinicio     db "Desea volver a jugar?",0dh,0ah
+    reinicio     db "JUGAR DE NUEVO?",0dh,0ah
                  db "1) SI",0dh,0ah
                  db "0) NO",0dh,0ah
                  db "Seleccione una opcion:",0dh,0ah,24h
     cartelSalida db "Gracias por jugar!",0dh,0ah,24h
-
-    ; --- VARIABLES AGREGADAS PARA EL EMPATE ---
     jugadas      db 0      
     cartelEmpate db 0dh, 0ah
-                 db "  ==============  ", 0dh, 0ah
+                 db "  ===========  ", 0dh, 0ah
                  db "  ! EMPATE !      ", 0dh, 0ah
-                 db "  ==============  ", 0dh, 0ah, 24h
+                 db "  ===========  ", 0dh, 0ah, 24h
+    cierreCartel db " |", 0dh, 0ah
+                 db "  ==============", 0dh, 0ah, 24h
 
 .code
 extrn win_chk:proc
@@ -73,7 +74,7 @@ gameLoop:
 
     ;IMPRIMO FICHA DEL TURNO ACTUAL:
     mov ah, 2
-    mov dl, fichaActual  
+    mov dl, fichaActual 
     int 21h
 
     ;LEO LA TECLA
@@ -212,7 +213,7 @@ casilla_libre_f3:
 llamada_win_chk:
     mov ganador, '0'
 
-    ; Incrementamos el conteo de movimientos realizados
+    ;EN CADA LLAMADA A LA FUNCION, AUMENTAMOS EL CONTADOR DE JUGADAS
     inc jugadas
 
     push offset ganador
@@ -247,11 +248,11 @@ llamada_win_chk:
     push offset diag_asc
     call win_chk
 
-    ; == VERIFICAMOS SI ALGUIEN GANÓ ==
+    ;VERIFICAMOS SI HUBO GANADOR
     cmp ganador, '0'
     jne mostrarGanador 
 
-    ; == VERIFICAMOS SI HAY EMPATE ==
+    ;VERIFICAMOS SI HUBO EMPATE
     cmp jugadas, 9
     je mostrarEmpate
 
@@ -279,7 +280,10 @@ mostrarGanador:
     mov dl, 0
     int 10h
 
-    int 80h ;LLAMADO A NUESTRA INTERRUPCION               
+;---------------------------------------------------------------
+;               LLAMADO A NUESTRA INTERRUPCION
+;---------------------------------------------------------------
+    int 80h        
 
     mov dl, ganador         
     mov ah, 2             
@@ -333,7 +337,9 @@ salida:
 
     main endp
 
-;-----------------------------------------------------------------------------------
+;-----------------------------------------------------------------
+;                   CENTRAR Y DIBUJAR TABLERO
+;-----------------------------------------------------------------
 
     dibujarTablero proc
     push ax
@@ -378,7 +384,10 @@ salida:
     ret
     dibujarTablero endp
 
-;------------------------------------------------------------------------------------------------------------------------------------
+;-----------------------------------------------------------------
+;               MAPEO Y ACTUALIZACION DE JUGADAS
+;-----------------------------------------------------------------
+
     mtxindx proc
     push ax
     push bx
@@ -388,9 +397,9 @@ salida:
     push dx
 
     xor dx, dx
-    mov dl, byte ptr fichaActual     
-    mov al, byte ptr filTablero      
-    mov ah, byte ptr colTablero      
+    mov dl, fichaActual     
+    mov al, filTablero
+    mov ah, colTablero     
 
     cmp al, 0
     je fila1_
@@ -488,8 +497,13 @@ fin_:
     ret
     mtxindx endp
 
-    ;------------------------------------------------------------------------------------------------------------------------------------
+;-------------------------------------------------------------------
+;                        REINICIO DE DATOS
+;-------------------------------------------------------------------
+
     reiniciarDatos proc
+    ;ESTA FUNCION PONE TODAS LAS VARIABLES EN CERO EN CASO DE QUE
+    ;EL USUARIO QUIERA REINICIAR LA PARTIDA
     push ax
     push si
     push cx
@@ -517,16 +531,16 @@ fin_:
     mov cx, 3
     mov si, 0
 limpieza:
-    mov [fil1 + si], '0'
-    mov [fil2 + si], '0'
-    mov [fil3 + si], '0'
-    mov [col1 + si], '0'
-    mov [col2 + si], '0'
-    mov [col3 + si], '0'
+    mov [fil1 + si],     '0'
+    mov [fil2 + si],     '0'
+    mov [fil3 + si],     '0'
+    mov [col1 + si],     '0'
+    mov [col2 + si],     '0'
+    mov [col3 + si],     '0'
     mov [diag_asc + si], '0'
     mov [diag_des + si], '0'
     inc si
-    loop limpieza
+loop limpieza
 
     pop cx
     pop si
